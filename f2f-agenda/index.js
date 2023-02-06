@@ -1,68 +1,111 @@
-Mavo.hooks.add("render-start", function (env) {
-	if (this.id === "w3ctag_breakouts") {
-		let breakout_x_participants = {};
+import GoogleSheets from "https://madata.dev/backends/google/sheets/google-sheets.js";
+import { Vue, SetData } from "https://mavue.mavo.io/mavue.js";
 
-		for (let row of env.data) {
-			for (let person in row) {
-				let breakout = row[person];
+let params = new URL(location).searchParams;
 
-				breakout_x_participants[breakout] ||= [];
-				if (breakout && breakout != "x" && !breakout_x_participants[breakout].includes(person)) {
-					breakout_x_participants[breakout].push(person);
-				}
+globalThis.app = Vue.createApp({
+	data () {
+		return {
+			breakouts: {},
+			participants: new Set(),
+			filter: {
+				participants: [],
+				anyorall: "any"
 			}
+		};
+	},
+
+	mounted () {
+		app_el.classList.remove("loading");
+	},
+
+	computed: {
+		countShown () {
+			return Object.values(this.breakouts).filter(b => b.shown).length;
+		},
+
+		countIsusuesShown () {
+			return Object.values(this.breakouts).filter(b => b.shown).reduce((a, b) => a + (b.issues?.length || 0), 0);
 		}
+	},
 
-		env.data = breakout_x_participants;
+	methods: {
+		isShown (breakout) {
+			if (this.filter.participants.length === 0) {
+				return true;
+			}
+
+			let showParticipants = new Set(this.filter.participants);
+			let intersection = breakout.participants.filter(p => showParticipants.has(p));
+
+			if (this.filter.anyorall === "all") {
+				return intersection.length === showParticipants.size;
+			}
+
+			return intersection.length > 0;
+		}
+	},
+
+	components: {
+		"set-data": SetData
 	}
-});
+}).mount("#app_el");
 
-function breakoutsWithoutIssues(breakout_x_participants, slotsWithTopics) {
-	slotsWithTopics = slotsWithTopics.map(x => Mavo.value(x));
+let f2f = params.get("f2f") ?? "Moonbase Alpha";
 
-	let slotsWithPeople = Object.keys(breakout_x_participants).filter(x => !slotsWithTopics.includes(x) && x !== "undefined");
+let slots = await (new GoogleSheets("https://docs.google.com/spreadsheets/d/1D7low9ygKMXzzFcClTh5Q75JQwHTLdzpW0qPv1BSsUU/edit#gid=1326461427", {
+	range: "A6:X15", transpose: true, headerRow: true, sheet: `${f2f} Person x Breakout`
+})).load();
+let issues = (new GoogleSheets("https://docs.google.com/spreadsheets/d/1D7low9ygKMXzzFcClTh5Q75JQwHTLdzpW0qPv1BSsUU/edit#gid=1478762209", {
+	headerRow: true, sheet: f2f
+})).load();
 
-	return slotsWithPeople.map(slot => ({
-		slot, participants: breakout_x_participants[slot]
-	}));
+// console.log(slots)
+
+let breakouts = {};
+let participants = new Set();
+
+// First, determine participants for each breakout
+for (let slot of slots) {
+	for (let participant in slot) {
+		let id = slot[participant];
+
+		if (id && id.toLowerCase() !== "x") {
+			let breakout = (breakouts[id] ??= {});
+			breakout.participants ??= [];
+			breakout.participants.push(participant);
+			participants.add(participant);
+		}
+	}
 }
 
-function getBreakouts(rows) {
-	let breakouts = {};
+issues = await issues;
 
-	for (let issue of rows) {
-		let slot = issue.Slot;
-		let o = breakouts[slot];
+// console.log(issues);
 
-		if (!breakouts[slot]) {
-			o = breakouts[slot] = {
-				slot,
-				issues: []
-			};
-		}
+// Then, issues for each breakout
+for (let issue of issues) {
+	let slot = issue.Slot;
 
-		o.issues.push({
-			name: issue.Name,
-			url: issue.URL,
-			comment: issue.Comments
-		});
+	if (!slot) {
+		continue;
 	}
 
-	return Object.values(breakouts).sort((a, b) => {
-		[a, b] = [a.slot, b.slot];
+	if (!(slot in breakouts)) {
+		// Orphan breakout with no participants!
+		breakouts[slot] = {orphan: true};
+	}
 
-		if (!b || a < b) {
-			return -1;
-		}
-		if (!a || a > b) {
-			return 1;
-		}
-		return 0;
+	let breakout = breakouts[slot];
+	breakout.issues ??= [];
+	breakout.issues.push({
+		name: issue.Name,
+		url: issue.URL,
+		comment: issue.Comments,
 	});
 }
 
-function intersection(arr1, arr2) {
-	let set2 = new Set(arr2);
+console.log(breakouts);
 
-	return arr1.filter(x => set2.has(x));
-}
+app.breakouts = breakouts;
+app.participants = participants;

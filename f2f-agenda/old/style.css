@@ -13,7 +13,11 @@ a:visited {
 	text-decoration-color: hsl(280 40% 40% / .4);
 }
 
-#app_el {
+[mv-multiple="rows"] {
+	display: none;
+}
+
+[mv-app="w3ctag_agenda"] {
 	display: grid;
 	grid-template-columns: auto 1fr;
 	grid-gap: 0 1em;
@@ -72,33 +76,8 @@ td ol {
 	padding: 0;
 }
 
-.comment {
+[property="comment"] {
 	font-size: smaller;
 	opacity: .7;
 	font-style: italic;
 }
-
-.participant {
-	cursor: pointer;
-}
-
-.warning::before {
-	content: "⚠️ ";
-}
-
-.loading::after {
-	content: "";
-	position: fixed;
-	top: 50%;
-	left: 50%;
-	translate: -50%;
-	width: 1em;
-	height: 1em;
-	border-radius: 50%;
-	background: conic-gradient(black, transparent 80%);
-	-webkit-mask: radial-gradient(transparent .3em, white 0);
-	font-size: 300%;
-	animation: spin 1s infinite linear;
-}
-
-@keyframes spin { to { rotate: 1turn; } }
