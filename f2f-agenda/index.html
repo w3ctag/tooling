@@ -13,12 +13,6 @@
 <div id="app_el" class="loading">
 	<aside>
 		<fieldset>
-			<label>
-				<input type="checkbox" v-model="filter.markdown">
-				Markdown view
-			</label>
-		</fieldset>
-		<fieldset>
 			<legend>Filter by participant <button @click="filter.participants = []">❌</button></legend>
 			<select multiple v-model="filter.participants" :size="participants.size">
 				<option v-for="participant of participants">{{ participant }}</option>
@@ -34,6 +28,12 @@
 					All
 				</label>
 			</div>
+		</fieldset>
+		<fieldset>
+			<label>
+				<input type="checkbox" v-model="filter.markdown">
+				Markdown view
+			</label>
 		</fieldset>
 	</aside>
 	<main>

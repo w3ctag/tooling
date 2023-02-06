@@ -27,6 +27,10 @@ fieldset {
 	border-radius: .2em;
 }
 
+fieldset + fieldset {
+	margin-top: 1em;
+}
+
 fieldset > select {
 	width: 100%;
 	font: inherit;
