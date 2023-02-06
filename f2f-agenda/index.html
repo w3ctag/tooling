@@ -10,8 +10,14 @@
 </head>
 <body>
 
-<div id="app_el"  class="loading">
+<div id="app_el" class="loading">
 	<aside>
+		<fieldset>
+			<label>
+				<input type="checkbox" v-model="filter.markdown">
+				Markdown view
+			</label>
+		</fieldset>
 		<fieldset>
 			<legend>Filter by participant <button @click="filter.participants = []">❌</button></legend>
 			<select multiple v-model="filter.participants" :size="participants.size">
@@ -31,7 +37,10 @@
 		</fieldset>
 	</aside>
 	<main>
-		<h2><strong>{{ countShown }}</strong> breakouts and <strong>{{ countIsusuesShown }}</strong> issues shown</h2>
+		<h2>
+			<span class="md-only">## </span>
+			<strong>{{ countShown }}</strong> breakouts and
+			<strong>{{ countIsusuesShown }}</strong> issues shown</h2>
 		<table>
 			<thead>
 				<th>Breakout</th>
@@ -40,11 +49,19 @@
 			</thead>
 			<tbody>
 				<tr v-for="(breakout, slot) in breakouts" v-show="breakout.shown">
-					<td>{{ slot }}</td>
-					<td v-if="!breakout.orphan">
+					<td>
+						<h3>
+						<span class="md-only">### Slot</span>
+						{{ slot }}
+						</h3>
+					</td>
+					<td class="participants" v-if="!breakout.orphan">
+						<p>
+						<span class="md-only">Participants: </span>
 						<template v-for="(participant, i) of breakout.participants">
 							<a class="participant" @click="filter.participants = [participant]">{{ participant }}</a>{{ i < breakout.participants.length - 1 ? ', ' : '' }}
 						</template>
+						</p>
 					</td>
 					<td v-else>
 						<div class="warning">
@@ -54,9 +71,15 @@
 					<td>
 						<set-data :on="breakout" name="shown" :value="isShown(breakout)" hidden></set-data>
 						<ol v-if="breakout.issues?.length">
-							<li v-for="issue of breakout.issues">
-								<a :href="issue.url" target="_blank">{{ issue.name }}</a>
-								<div class="comment">{{ issue.comment }}</div>
+							<li v-for="(issue, i) of breakout.issues">
+								<template v-if="filter.markdown">
+									{{ i + 1 }}.
+									<a :href="issue.url" target="_blank">[{{ issue.name }}]({{ issue.url }})</a>
+								</template>
+								<template v-else>
+									<a :href="issue.url" target="_blank">{{ issue.name }}</a>
+									<div class="comment">{{ issue.comment }}</div>
+								</template>
 							</li>
 						</ol>
 						<div v-else class="warning">

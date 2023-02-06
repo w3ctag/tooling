@@ -38,6 +38,10 @@ h2 {
 	margin-top: 0;
 }
 
+:is(h3, p):not(.markdown *) {
+	margin: 0;
+}
+
 table {
 	width: 100%;
 }
@@ -49,15 +53,22 @@ th {
 td {
 	padding: .5rem 0;
 	vertical-align: top;
+}
+
+td:not(.markdown *) {
 	border-top: 1px solid hsl(220 10% 70%);
 }
 
 td:first-child {
-	font-size: 300%;
+	font-size: 200%;
 	font-weight: bold;
 	line-height: 1;
 	letter-spacing: -.03em;
-	color: hsl(220 10% 50%)
+}
+
+td:first-child:not(.markdown *) {
+	font-size: 300%;
+	color: hsl(220 10% 50%);
 }
 
 td:first-child:empty::before {
@@ -102,3 +113,24 @@ td ol {
 }
 
 @keyframes spin { to { rotate: 1turn; } }
+
+/* Markdown view */
+.markdown aside {
+	user-select: none;
+}
+
+.markdown :is(table, tbody, tr, td) {
+	display: contents;
+}
+
+.markdown thead {
+	display: none;
+}
+
+.markdown ol {
+	list-style: none;
+}
+
+.md-only:not(.markdown *) {
+	display: none;
+}

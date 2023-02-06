@@ -29,6 +29,12 @@ globalThis.app = Vue.createApp({
 		}
 	},
 
+	watch: {
+		"filter.markdown": function () {
+			document.documentElement.classList.toggle("markdown", this.filter.markdown);
+		}
+	},
+
 	methods: {
 		isShown (breakout) {
 			if (this.filter.participants.length === 0) {
@@ -57,7 +63,7 @@ let slots = await (new GoogleSheets("https://docs.google.com/spreadsheets/d/1D7l
 	range: "A6:X15", transpose: true, headerRow: true, sheet: `${f2f} Person x Breakout`
 })).load();
 let issues = (new GoogleSheets("https://docs.google.com/spreadsheets/d/1D7low9ygKMXzzFcClTh5Q75JQwHTLdzpW0qPv1BSsUU/edit#gid=1478762209", {
-	headerRow: true, sheet: f2f
+headerRow: true, sheet: f2f
 })).load();
 
 // console.log(slots)
