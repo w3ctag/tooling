@@ -55,7 +55,7 @@
 						{{ slot }}
 						</h3>
 					</td>
-					<td class="participants" v-if="!breakout.orphan">
+					<td class="participants" v-if="breakout.participants?.length > 0">
 						<p>
 						<span class="md-only">Participants: </span>
 						<template v-for="(participant, i) of breakout.participants">
